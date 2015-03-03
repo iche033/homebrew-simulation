@@ -1,0 +1,15 @@
+language: objective-c
+
+before_install:
+  - brew update
+  
+install:
+  - mkdir -p $(brew --repo)/Library/Taps/osrf
+  - ln -s $PWD $(brew --repo)/Library/Taps/osrf/homebrew-simulation
+  - brew tap --repair
+  
+script:
+  - brew audit `ls $(brew --repo)/Library/Taps/osrf/homebrew-simulation/*.rb | grep -v sofa.rb`
+  
+matrix:
+  fast_finish: true
