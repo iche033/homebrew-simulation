@@ -9,35 +9,62 @@ class Ogre19 < Formula
     sha1 'dd1c0a27ff76a34d3c0daf7534ab9cd16e399f86'
 
     patch do
-      # This patch changes how Ogre installs files on OS X, so that they are
-      # discoverable with CMake logic similar to Linux.
       url 'https://gist.githubusercontent.com/NikolausDemmel/2b11d1b49b35cd27a102/raw/3af6b11889a90d7e35bb90cdb34c46ea8334eaf3/fix-1.9.0-release.diff'
       sha1 '9ad217fc33690f76fd857ba49c3840715d4f3527'
     end
+
+    patch do
+      url 'https://gist.githubusercontent.com/hgaiser/9ed14de3d776cd34100e/raw/38c7a88cab9067e88a21f1386fbb8ac1aaeed8ac/window.patch'
+      sha1 'c520d0641183bb275a0b29ef6188353bc2ba6217'
+    end
+
+    patch do
+      url 'https://gist.githubusercontent.com/iche033/68349eebfc436e484b70e6e3508ae27b/raw/d96227cd79ed1d63f051689a18c95a1c174a4efa/ogre-1.9-ois.patch'
+      sha1 '97e95aa6a2688457db0c92aaed8f6ffbf75a46db'
+    end
+
+    patch do
+      url 'https://gist.githubusercontent.com/iche033/b73766fac9ab3d628a79b5ed986677cd/raw/878d0902704c7fb51511163052c95294361f1dbe/ogre-1.9-agl.patch'
+      sha1 'df27faeb6b3a6e04c37ba27168f2b83723199f2a'
+    end
+
   end
 
   devel do
     url 'https://bitbucket.org/sinbad/ogre/get/v1-9.tar.bz2'
     version '1.9.1-devel'
-    sha1 '4036621e8ce2af77f3ed77a61e1976de6d722d3b'
+    sha1 'e84458c4bbbd6fe259d9e1cd1cb88d1f249ad810'
 
     patch do
-      # This patch changes how Ogre installs files on OS X, so that they are
-      # discoverable with CMake logic similar to Linux.
-      url 'https://gist.githubusercontent.com/NikolausDemmel/2b11d1b49b35cd27a102/raw/bf4a4d16020821218f73db0d56aa111ab2fde679/fix-1.9-HEAD.diff'
+      url 'https://gist.github.com/NikolausDemmel/2b11d1b49b35cd27a102/raw/bf4a4d16020821218f73db0d56aa111ab2fde679/fix-1.9-HEAD.diff'
       sha1 '90bef44c2a821bba3254c011b0aa0f5ecedeb788'
     end
+
+    patch do
+      # this is the same patch as hgaiser's `window.patch` above, but applicable to the latest 1.9 version
+      url 'https://gist.githubusercontent.com/NikolausDemmel/927bd7bb3f14c1788599/raw/c9a5ba88b758e80d3f46511629c4e8026b92c462/ogre1.9.patch'
+      sha1 '44ef20d7a7124814bacade807a7d97bb8c1e6356'
+    end
+
+    patch do
+      url 'https://gist.githubusercontent.com/iche033/68349eebfc436e484b70e6e3508ae27b/raw/d96227cd79ed1d63f051689a18c95a1c174a4efa/ogre-1.9-ois.patch'
+      sha1 '97e95aa6a2688457db0c92aaed8f6ffbf75a46db'
+    end
+
+    patch do
+      url 'https://gist.githubusercontent.com/iche033/b73766fac9ab3d628a79b5ed986677cd/raw/878d0902704c7fb51511163052c95294361f1dbe/ogre-1.9-agl.patch'
+      sha1 'df27faeb6b3a6e04c37ba27168f2b83723199f2a'
+    end
+
+    patch do
+      url 'https://gist.githubusercontent.com/iche033/e0080a592c890cc9a4fce31f6863a5ed/raw/875ae8ad1d9f0eaa271fd44eab8e0979bac74119/ogre-1.9-cocoa_window_scale.patch'
+      sha1 '2bbf0fba832514c1b07f5d4160ab5c438fcc91b2'
+    end
+
   end
 
-  patch do
-    # This patch is to prevent OS X Cocoa windows from going out of scope.
-    # Upstream: http://www.ogre3d.org/forums/viewtopic.php?f=2&t=81649
-    url 'https://gist.githubusercontent.com/hgaiser/9ed14de3d776cd34100e/raw/38c7a88cab9067e88a21f1386fbb8ac1aaeed8ac/window.patch'
-    sha1 'c520d0641183bb275a0b29ef6188353bc2ba6217'
-  end
-
-  # The pathin :DATA is to fix the installed FinOGRE.cmake so it works on OS X with the above patches
-  patch :p1, :DATA
+  #head 'https://bitbucket.org/sinbad/ogre', :using => :hg
+  #patch :DATA
 
   depends_on 'boost'
   depends_on 'cmake' => :build
@@ -63,7 +90,7 @@ class Ogre19 < Formula
       "-DOGRE_INSTALL_SAMPLES:BOOL=FALSE",
       "-DOGRE_INSTALL_SAMPLES_SOURCE:BOOL=FALSE",
     ]
-    cmake_args << "-DOGRE_BUILD_PLUGIN_CG=OFF" if build.without? "cg"
+    cmake_args << "-DOGRE_BUILD_PLUGIN_CG=OFF" unless build.include? "with-cg"
     cmake_args.concat(std_cmake_args)
     cmake_args << ".."
 
@@ -71,6 +98,23 @@ class Ogre19 < Formula
       system "cmake", *cmake_args
       system "make install"
     end
+
+    # Reference of where debian puts files:
+    # https://packages.debian.org/jessie/amd64/libogre-1.9-dev/filelist
+    # https://packages.debian.org/jessie/amd64/libogre-1.9.0/filelist
+
+    # FIXME: for now we build with doc and samples OFF, so config files, media
+    #        and docs are not present
+
+    # remove config files from bin directory
+#     (share/'OGRE/config').install Dir[bin/"macosx/*.cfg"]
+#     rmdir bin/"macosx"
+#
+#     (share/"OGRE/").install prefix/"Media"
+#     rmdir prefix/"Media"
+#
+#     (doc/"OGRE").install Dir[prefix/"Docs/*"]
+#     rmdir prefix/"Docs"
 
     # Put these cmake files where Debian puts them
     (share/"OGRE/cmake/modules").install Dir[prefix/"CMake/*.cmake"]
@@ -84,23 +128,6 @@ class Ogre19 < Formula
       filename = File.basename(path)
       symlink path, lib/"OGRE/lib#{filename}"
     end
-  end
 
-  test do
-    false
   end
 end
-__END__
-diff --git a/CMake/Packages/FindOGRE.cmake b/CMake/Packages/FindOGRE.cmake
-index fbbf949..cd29a8e 100644
---- a/CMake/Packages/FindOGRE.cmake
-+++ b/CMake/Packages/FindOGRE.cmake
-@@ -71,7 +71,7 @@ else ()
- endif ()
- 
- if(APPLE AND NOT OGRE_STATIC)
--	set(OGRE_LIBRARY_NAMES "Ogre${OGRE_LIB_SUFFIX}")
-+	set(OGRE_LIBRARY_NAMES "OgreMain${OGRE_LIB_SUFFIX}")
- else()
-     set(OGRE_LIBRARY_NAMES "OgreMain${OGRE_LIB_SUFFIX}")
- endif()
