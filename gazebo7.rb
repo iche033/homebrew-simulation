@@ -1,15 +1,16 @@
-class Gazebo5 < Formula
+class Gazebo7 < Formula
   desc "Gazebo robot simulator"
   homepage "http://gazebosim.org"
-  url "http://gazebosim.org/distributions/gazebo/releases/gazebo-5.3.0.tar.bz2"
-  sha256 "9355277ea3f20f411fcb664d891c2f409130cbb16fe844a86cd2f9a90c6428de"
+  url "http://gazebosim.org/distributions/gazebo/releases/gazebo-7.4.0.tar.bz2"
+  sha256 "a033b2273383f16e5dd5b5bfe597551dc3618b98e64abecfa8a41bdddd6542f7"
   revision 2
 
-  head "https://bitbucket.org/osrf/gazebo", :branch => "gazebo5", :using => :hg
+  head "https://bitbucket.org/osrf/gazebo", :branch => "gazebo7", :using => :hg
 
   bottle do
     root_url "http://gazebosim.org/distributions/gazebo/releases"
-    sha256 "52c80d40792f3b96c4c6efe6d7c1380cda2f2b173cddbec2e764bdead7e95478" => :yosemite
+    sha256 "7e486be831a6b9b87518ae06c0e20e5f5fc14fc23e4310871c405535bf4a4132" => :el_capitan
+    sha256 "1847f8d393b26942aafbe9c51e4f811a21f91e63158efed299e7a67c19068769" => :yosemite
   end
 
   depends_on "cmake" => :build
@@ -18,14 +19,17 @@ class Gazebo5 < Formula
   depends_on "boost"
   depends_on "doxygen"
   depends_on "freeimage"
+  depends_on "ignition-math2"
+  depends_on "ignition-transport"
   depends_on "libtar"
   depends_on "ogre"
   depends_on "protobuf"
   depends_on "protobuf-c"
   depends_on "qt"
-  depends_on "sdformat"
+  depends_on "sdformat4"
   depends_on "tbb"
   depends_on "tinyxml"
+  depends_on "tinyxml2"
 
   depends_on "bullet" => [:recommended, "with-shared", "with-double-precision"]
   depends_on "dartsim/dart/dartsim4" => [:optional, "core-only"]
@@ -39,8 +43,8 @@ class Gazebo5 < Formula
   conflicts_with "gazebo2", :because => "Differing version of the same formula"
   conflicts_with "gazebo3", :because => "Differing version of the same formula"
   conflicts_with "gazebo4", :because => "Differing version of the same formula"
+  conflicts_with "gazebo5", :because => "Differing version of the same formula"
   conflicts_with "gazebo6", :because => "Differing version of the same formula"
-  conflicts_with "gazebo7", :because => "Differing version of the same formula"
   conflicts_with "gazebo8", :because => "Differing version of the same formula"
 
   patch do
@@ -49,18 +53,11 @@ class Gazebo5 < Formula
     sha256 "c4774f64c490fa03236564312bd24a8630963762e25d98d072e747f0412df18e"
   end
 
-  patch do
-    # Fix for compatibility with boost 1.62
-    url "https://bitbucket.org/osrf/gazebo/commits/9c5ce8a121904cf3373502320510ee74bc84b01d/raw/"
-    sha256 "0710a8ead0ff766fa395642d22d47b80b72e173a804a0ffc63385e500c88c271"
-  end unless build.head?
-
   def install
     ENV.m64
 
     cmake_args = std_cmake_args
     cmake_args << "-DENABLE_TESTS_COMPILATION:BOOL=False"
-    cmake_args << "-DFORCE_GRAPHIC_TESTS_COMPILATION:BOOL=True"
 
     mkdir "build" do
       system "cmake", "..", *cmake_args

@@ -1,37 +1,42 @@
-require 'formula'
-
 class Sdformat < Formula
-  homepage 'http://gazebosim.org/sdf.html'
-  url 'http://gazebosim.org/distributions/sdformat/releases/sdformat-2.3.0.tar.bz2'
-  sha1 '604cb8a3a90d426abc7178dc90ba0cd884867473'
-  head 'https://bitbucket.org/osrf/sdformat', :branch => 'sdf_2.0', :using => :hg
+  desc "Simulation Description Format"
+  homepage "http://sdformat.org"
+  url "http://gazebosim.org/distributions/sdformat/releases/sdformat-2.3.2.tar.bz2"
+  sha256 "f1e6e39f1240c6a1732ed3fd26fd70e2bf865aed15fc4b0a24c0f76562eac0ae"
+  revision 1
 
-  depends_on 'boost'
-  depends_on 'cmake' => :build
-  depends_on 'pkg-config' => :build
-  depends_on 'ros/deps/urdfdom'
-  depends_on 'ros/deps/urdfdom_headers'
-  depends_on 'doxygen'
-  depends_on 'tinyxml'
+  head "https://bitbucket.org/osrf/sdformat", :branch => "sdf_2.3", :using => :hg
+
+  bottle do
+    root_url "http://gazebosim.org/distributions/sdformat/releases"
+    sha256 "d0d0a935f46adc4403cbfdb9cd96fa3cd77e3fdd0dafe355e911e5db92602705" => :yosemite
+  end
+
+  depends_on "cmake" => :build
+
+  depends_on "boost"
+  depends_on "doxygen"
+  depends_on "pkg-config" => :run
+  depends_on "ros/deps/urdfdom" => :optional
+  depends_on "tinyxml"
+
+  conflicts_with "sdformat3", :because => "Differing version of the same formula"
+  conflicts_with "sdformat4", :because => "Differing version of the same formula"
 
   def install
     ENV.m64
 
-    cmake_args = [
-      "-DUSE_EXTERNAL_URDF:BOOL=True",
-      "-DCMAKE_BUILD_TYPE='Release'",
-      "-DCMAKE_INSTALL_PREFIX='#{prefix}'",
-      "-Wno-dev"
-    ]
+    cmake_args = std_cmake_args
+    cmake_args << "-DUSE_EXTERNAL_URDF:BOOL=True" if build.with? "urdfdom"
     cmake_args << ".."
 
     mkdir "build" do
       system "cmake", *cmake_args
-      system "make install"
+      system "make", "install"
     end
   end
 
   test do
-    system "pkg-config --modversion sdformat"
+    system "pkg-config", "--modversion", "sdformat"
   end
 end

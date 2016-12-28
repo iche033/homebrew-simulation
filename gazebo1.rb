@@ -1,16 +1,9 @@
-class Gazebo5 < Formula
+class Gazebo1 < Formula
   desc "Gazebo robot simulator"
   homepage "http://gazebosim.org"
-  url "http://gazebosim.org/distributions/gazebo/releases/gazebo-5.3.0.tar.bz2"
-  sha256 "9355277ea3f20f411fcb664d891c2f409130cbb16fe844a86cd2f9a90c6428de"
-  revision 2
-
-  head "https://bitbucket.org/osrf/gazebo", :branch => "gazebo5", :using => :hg
-
-  bottle do
-    root_url "http://gazebosim.org/distributions/gazebo/releases"
-    sha256 "52c80d40792f3b96c4c6efe6d7c1380cda2f2b173cddbec2e764bdead7e95478" => :yosemite
-  end
+  url "http://gazebosim.org/distributions/gazebo/releases/gazebo-1.9.7.tar.bz2"
+  sha256 "27f3f81d3b11f997e8879e660445e49e81f8d15909ef7352b166c5050c61573a"
+  head "https://bitbucket.org/osrf/gazebo", :branch => "gazebo_1.9", :using => :hg
 
   depends_on "cmake" => :build
   depends_on "pkg-config" => :build
@@ -27,18 +20,16 @@ class Gazebo5 < Formula
   depends_on "tbb"
   depends_on "tinyxml"
 
-  depends_on "bullet" => [:recommended, "with-shared", "with-double-precision"]
-  depends_on "dartsim/dart/dartsim4" => [:optional, "core-only"]
+  depends_on "bullet" => [:optional, "with-shared", "with-double-precision"]
   depends_on "ffmpeg" => :optional
-  depends_on "gdal" => :optional
   depends_on "gts" => :optional
   depends_on "player" => :optional
-  depends_on "simbody" => :recommended
+  depends_on "simbody" => :optional
 
-  conflicts_with "gazebo1", :because => "Differing version of the same formula"
   conflicts_with "gazebo2", :because => "Differing version of the same formula"
   conflicts_with "gazebo3", :because => "Differing version of the same formula"
   conflicts_with "gazebo4", :because => "Differing version of the same formula"
+  conflicts_with "gazebo5", :because => "Differing version of the same formula"
   conflicts_with "gazebo6", :because => "Differing version of the same formula"
   conflicts_with "gazebo7", :because => "Differing version of the same formula"
   conflicts_with "gazebo8", :because => "Differing version of the same formula"
@@ -50,10 +41,22 @@ class Gazebo5 < Formula
   end
 
   patch do
-    # Fix for compatibility with boost 1.62
-    url "https://bitbucket.org/osrf/gazebo/commits/9c5ce8a121904cf3373502320510ee74bc84b01d/raw/"
-    sha256 "0710a8ead0ff766fa395642d22d47b80b72e173a804a0ffc63385e500c88c271"
-  end unless build.head?
+    # Fix build with protobuf 2.6 (gazebo #1289)
+    url "https://bitbucket.org/osrf/gazebo/commits/4bb4390655af316b582f8e0fea23438426b4e681/raw/"
+    sha256 "70d39a547aa27a5357ddf0859d41515c945730ca1cef770be3c0cff2e29340d2"
+  end
+
+  patch do
+    # Fix build with boost 1.57 (gazebo #1399)
+    url "https://bitbucket.org/osrf/gazebo/commits/39f8398003ada7381dc03096f666627e84c738eb/raw/"
+    sha256 "6d38b6f01491f0419d70d72c067a69b75dfc3ac4520b4ceaeb7f0da9436b4a37"
+  end
+
+  patch do
+    # Fix for compatibility with boost 1.58
+    url "https://bitbucket.org/osrf/gazebo/commits/91f6f3c59f40af34855548c37857955d08fd1368/raw/"
+    sha256 "1a8b232be58f36bf5fa0129169f4d4d40d72624b460735457c781ba3e02c7900"
+  end
 
   def install
     ENV.m64
@@ -69,6 +72,6 @@ class Gazebo5 < Formula
   end
 
   test do
-    system "#{bin}/gz", "sdf"
+    system "gazebo", "--help"
   end
 end

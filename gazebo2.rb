@@ -1,63 +1,73 @@
-require 'formula'
-
 class Gazebo2 < Formula
-  homepage 'http://gazebosim.org'
-  url 'http://gazebosim.org/distributions/gazebo/releases/gazebo-2.2.5.tar.bz2'
-  sha1 'a3c5366c478de613d0027cc2e5d0eced82a33467'
-  head 'https://bitbucket.org/osrf/gazebo', :branch => 'gazebo_2.2', :using => :hg
+  desc "Gazebo robot simulator"
+  homepage "http://gazebosim.org"
+  url "http://gazebosim.org/distributions/gazebo/releases/gazebo-2.2.6.tar.bz2"
+  sha256 "c5e886a9d43a99865d3393dab643493c906c106781ea2ee50555bb8dcf03bd81"
+  head "https://bitbucket.org/osrf/gazebo", :branch => "gazebo_2.2", :using => :hg
 
-  depends_on 'cmake'  => :build
-  depends_on 'pkg-config' => :build
+  depends_on "cmake" => :build
+  depends_on "pkg-config" => :build
 
-  depends_on 'boost'
-  depends_on 'doxygen'
-  depends_on 'freeimage'
-  depends_on 'libtar'
-  depends_on 'ogre'
-  depends_on 'protobuf'
-  depends_on 'protobuf-c'
-  depends_on 'qt'
-  depends_on 'sdformat'
-  depends_on 'tbb'
-  depends_on 'tinyxml'
+  depends_on "boost"
+  depends_on "doxygen"
+  depends_on "freeimage"
+  depends_on "libtar"
+  depends_on "ogre"
+  depends_on "protobuf"
+  depends_on "protobuf-c"
+  depends_on "qt"
+  depends_on "sdformat"
+  depends_on "tbb"
+  depends_on "tinyxml"
 
-  depends_on 'bullet' => [:optional, 'shared', 'double-precision']
-  depends_on 'dartsim/dart/dartsim' => [:optional, 'core-only']
-  depends_on 'ffmpeg' => :optional
-  depends_on 'gts' => :optional
-  depends_on 'player' => :optional
-  depends_on 'simbody' => :optional
+  depends_on "bullet" => [:optional, "with-shared", "with-double-precision"]
+  depends_on "dartsim/dart/dartsim" => [:optional, "core-only"]
+  depends_on "ffmpeg" => :optional
+  depends_on "gts" => :optional
+  depends_on "player" => :optional
+  depends_on "simbody" => :optional
+
+  conflicts_with "gazebo1", :because => "Differing version of the same formula"
+  conflicts_with "gazebo3", :because => "Differing version of the same formula"
+  conflicts_with "gazebo4", :because => "Differing version of the same formula"
+  conflicts_with "gazebo5", :because => "Differing version of the same formula"
+  conflicts_with "gazebo6", :because => "Differing version of the same formula"
+  conflicts_with "gazebo7", :because => "Differing version of the same formula"
+  conflicts_with "gazebo8", :because => "Differing version of the same formula"
 
   patch do
     # Fix build when homebrew python is installed
-    url 'https://gist.githubusercontent.com/scpeters/9199370/raw/afe595587e38737c537124a3652db99de026c272/brew_python_fix.patch'
-    sha1 'eaa6f843ab1264810c0c0a81ff3c52232fd49d12'
+    url "https://gist.githubusercontent.com/scpeters/9199370/raw/afe595587e38737c537124a3652db99de026c272/brew_python_fix.patch"
+    sha256 "c4774f64c490fa03236564312bd24a8630963762e25d98d072e747f0412df18e"
   end
 
   patch do
-    # Fix build with protobuf 2.6 (gazebo #1289)
-    url 'https://bitbucket.org/osrf/gazebo/commits/4bb4390655af316b582f8e0fea23438426b4e681/raw/'
-    sha1 '4b149bdfb0a95c08d76c724f11f7a9780a3759fa'
+    # Fix for compatibility with boost 1.58
+    url "https://bitbucket.org/osrf/gazebo/commits/91f6f3c59f40af34855548c37857955d08fd1368/raw/"
+    sha256 "1a8b232be58f36bf5fa0129169f4d4d40d72624b460735457c781ba3e02c7900"
   end
 
   patch do
-    # Fix build with boost 1.57 (gazebo #1399)
-    url 'https://bitbucket.org/osrf/gazebo/commits/39f8398003ada7381dc03096f666627e84c738eb/raw/'
-    sha1 'd7439de6508149cfa1c11058f0e626037e6c1552'
+    # Fix for compatibility with boost 1.62
+    url "https://bitbucket.org/osrf/gazebo/commits/5819aa5d7d186e65a9054e2da8d9fc8e092483ca/raw/"
+    sha256 "1fa2b2149bd1a4fbf999fe24bf39f06f7f652d4936dbdeacb807938207d0851e"
   end
 
   def install
     ENV.m64
 
-    cmake_args = std_cmake_args.select { |arg| arg.match(/CMAKE_BUILD_TYPE/).nil? }
-    cmake_args << "-DCMAKE_BUILD_TYPE=Release"
+    cmake_args = std_cmake_args
     cmake_args << "-DENABLE_TESTS_COMPILATION:BOOL=False"
     cmake_args << "-DFORCE_GRAPHIC_TESTS_COMPILATION:BOOL=True"
     cmake_args << "-DDARTCore_FOUND:BOOL=False"
 
     mkdir "build" do
       system "cmake", "..", *cmake_args
-      system "make install"
+      system "make", "install"
     end
+  end
+
+  test do
+    system "gazebo", "--help"
   end
 end

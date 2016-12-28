@@ -1,9 +1,8 @@
-require "formula"
-
 class Player < Formula
+  desc "Cross-platform robot device interface & server"
   homepage "http://playerstage.sourceforge.net"
   url "https://downloads.sourceforge.net/project/playerstage/Player/3.0.2/player-3.0.2.tar.gz"
-  sha1 "34931ca57148db01202afd08fdc647cc5fdc884c"
+  sha256 "25f93185aeae969adcd2f8ec2849f7773e1715a901e0ea365c777368a5c61343"
   head "http://svn.code.sf.net/p/playerstage/svn/code/player/trunk"
 
   depends_on "cmake" => :build
@@ -12,7 +11,14 @@ class Player < Formula
   patch :DATA
 
   def install
-    system "cmake", ".", *std_cmake_args
+    # swig bindings are broken
+    # https://github.com/osrf/homebrew-simulation/issues/76
+    # https://github.com/playerproject/player/issues/3
+    cmake_args = std_cmake_args
+    cmake_args << "-DBUILD_RUBY_BINDINGS=0"
+    cmake_args << "-DBUILD_PYTHONC_BINDINGS=0"
+
+    system "cmake", ".", *cmake_args
     system "make", "install"
   end
 end
@@ -60,3 +66,59 @@ index c7410ec..6c9737d 100644
                          PLAYERCC_ADD_INCLUDE_DIR (${Boost_INCLUDE_DIR})
                          PLAYERCC_ADD_LINK_DIR (${Boost_LIBRARY_DIRS})
                          SET (boostIncludeDir ${Boost_INCLUDE_DIRS})
+diff --git a/libplayercore/message.cc b/libplayercore/message.cc
+index 29bb3be..c850c49 100644
+--- a/libplayercore/message.cc
++++ b/libplayercore/message.cc
+@@ -726,25 +726,25 @@ MessageQueue & QueuePointer::operator * ()
+ }
+ 
+ /// check if pointers are equal
+-bool QueuePointer::operator == (const QueuePointer & rhs)
++bool QueuePointer::operator == (const QueuePointer & rhs) const
+ {
+   return rhs.Queue == Queue;
+ }
+ 
+ /// check if pointers are equal
+-bool QueuePointer::operator == (void * pointer)
++bool QueuePointer::operator == (void * pointer) const
+ {
+   return Queue == pointer;
+ }
+ 
+ /// check if pointers are equal
+-bool QueuePointer::operator != (const QueuePointer & rhs)
++bool QueuePointer::operator != (const QueuePointer & rhs) const
+ {
+   return rhs.Queue != Queue;
+ }
+ 
+ /// check if pointers are equal
+-bool QueuePointer::operator != (void * pointer)
++bool QueuePointer::operator != (void * pointer) const
+ {
+   return Queue != pointer;
+ }
+diff --git a/libplayercore/message.h b/libplayercore/message.h
+index 89b91f4..04fba44 100644
+--- a/libplayercore/message.h
++++ b/libplayercore/message.h
+@@ -91,13 +91,13 @@ class PLAYERCORE_EXPORT QueuePointer
+ 	/// retrieve underlying object for use
+ 	MessageQueue & operator * ();
+ 	/// check if pointers are equal
+-	bool operator == (const QueuePointer & rhs);
++	bool operator == (const QueuePointer & rhs) const;
+ 	/// check if pointers are equal
+-	bool operator == (void * pointer);
++	bool operator == (void * pointer) const;
+ 	/// check if pointers are equal
+-	bool operator != (const QueuePointer & rhs);
++	bool operator != (const QueuePointer & rhs) const;
+ 	/// check if pointers are equal
+-	bool operator != (void * pointer);
++	bool operator != (void * pointer) const;
+ 	
+   private:
+     /// Decrement ref count
